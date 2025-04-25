@@ -1,0 +1,16 @@
+langchain
+langchain-core
+langchain-ollama
+langchain-community
+langchain-openai
+python-dotenv
+requests
+fastapi
+uvicorn
+langchainhub 
+chromadb 
+langchain-chroma>=0.1.2
+langchain-text-splitters 
+beautifulsoup4
+google-adk
+litellm
