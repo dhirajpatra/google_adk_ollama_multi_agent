@@ -30,7 +30,7 @@ Still this is the only Google ADK Ollama multi Agent application to run locally.
     LANGCHAIN_TRACING_V2="true"
     LANGCHAIN_PROJECT="Your_LangGraph_Project_Name"
     Antyhing else api key etc
-    WEATHER_API_KEY=sk-live-HfxTv5aH14QNlxv2NqR15B5ZzqzFWU8pBpc2PzNi
+    WEATHER_API_KEY=your-key
     USER_AGENT=MyLangGraphBot/1.0
     # MODEL=gemma3:4b
     MODEL=llama3.1:8b
