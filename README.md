@@ -1,6 +1,6 @@
 # Google ADK Multi Agent Ollama Application
 
-Still this is the only Google ADK Ollama multi Agent application to run locally.
+Still this is the only Google ADK Ollama multi Agent application to run locally. It is not completed yet due to error from ADK Litellm and other function to communicate with Ollama and ADK.
 
 # image of krishigpt chatbot
 ![KrishiGPT Chatbot](./images/multiagentworking.png "KrishiGPT Chatbot")
