@@ -13,6 +13,8 @@ from google.genai import types
 from tools.weather_tool import weather_tool
 from tools.calendar_tool import calendar_tool
 from tools.retriever_tool import retriever_tool
+import litellm
+litellm._turn_on_debug()
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
@@ -34,24 +36,30 @@ llm = LiteLlm(
 )
 
 weather_prompt = """You are a weather assistant. Follow these rules STRICTLY:
-1. ONLY answer weather-related questions (e.g., temperature, forecast, rain).
-2. Use ONLY the weather_tool to retrieve weather information.
-3. DO NOT attempt to answer anything unrelated to weather.
-4. After completing your task, ALWAYS transfer back to the supervisor.
+1. ONLY answer weather-related questions (e.g., temperature, forecast, rain) for a specific city.
+2. If the user asks for the weather, identify the city and use the 'get_weather_report' tool with the city name.
+3. If the tool returns a 'success' status, provide the weather report to the user.
+4. If the tool returns an 'error', inform the user that the weather information for that city is not available.
+5. DO NOT attempt to answer anything unrelated to weather or without using the tool.
+6. After completing your task, ALWAYS transfer back to the supervisor.
 """
 
 calendar_prompt = """You are a calendar assistant. Follow these rules STRICTLY:
-1. ONLY answer questions about meetings, schedules, or events.
-2. Use ONLY the calendar_tool to check or respond.
-3. DO NOT answer anything not related to calendar tasks.
-4. After completing your task, ALWAYS transfer back to the supervisor.
+1. ONLY answer questions about today's meetings or schedule.
+2. If the user asks about their schedule or meetings for today, use the 'check_calendar' tool.
+3. If the tool returns a 'success' status with a report, provide the meeting information to the user.
+4. If the tool indicates no meetings, inform the user.
+5. DO NOT answer anything not related to today's calendar.
+6. After completing your task, ALWAYS transfer back to the supervisor.
 """
 
 retriever_prompt = """You are a document retrieval assistant. Follow these rules STRICTLY:
-1. ONLY answer questions about documents, blogs, LLMs, or prompts.
-2. Use ONLY the retriever_tool to fetch or summarize.
-3. DO NOT respond to anything outside your scope.
-4. After completing your task, ALWAYS transfer back to the supervisor.
+1. ONLY answer questions about documents, blogs, LLMs, or prompts based on the provided search results.
+2. When the user asks a question related to these topics, use the 'retrieve_information' tool with their query. Specify a reasonable value for 'k' (e.g., 2 or 3).
+3. If the tool returns 'success' with results, synthesize an answer based on the content of the retrieved documents. Include the source metadata if relevant.
+4. If the tool returns 'error', inform the user that the information could not be found.
+5. DO NOT respond to anything outside your scope or without using the tool.
+6. After completing your task, ALWAYS transfer back to the supervisor.
 """
 
 # Create specialized agents
@@ -125,13 +133,13 @@ def llm_call(content: str, user_id: str = USER_ID, session_id: str = str(uuid.uu
         content = types.Content(role='user', parts=[types.Part(text=content)])
         session_id = str(uuid.uuid4())  # Create a new session ID for each call
         session = session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=session_id)
-        events = runner.run(user_id=USER_ID, session_id=session_id, new_message=content)
-
         final_response = None
-        for event in events:
+        for event in runner.run(user_id=USER_ID, session_id=session_id, new_message=content):
             if event.is_final_response():
-                final_response = event.content.parts[0].text
-                print("Agent Response: ", final_response)
+                if event.content and event.content.parts:
+                    final_response = event.content.parts[0].text
+                    print("Agent Response: ", final_response)
+                break  # Exit the loop once the final response is received
 
         if not final_response:
             raise ValueError("Empty response from agent")
